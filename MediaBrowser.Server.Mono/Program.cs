@@ -223,7 +223,7 @@ namespace MediaBrowser.Server.Mono
         }
     }
 
-    class NoCheckCertificatePolicy : ICertificatePolicy
+    class NoCheckCertificatePolicy
     {
         public bool CheckValidationResult(ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem)
         {
