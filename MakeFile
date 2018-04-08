@@ -1,5 +1,5 @@
 CONFIG    = Release
-RELEASE   = linux-x64
+RUNTIME   = linux-x64
 
 # Use with xterm to prevent incompatibility with distros who 
 # ship a recent version of ncurses. See:
@@ -9,13 +9,13 @@ TERM      = xterm
 all : cleanup restore build
 
 cleanup:
-	dotnet clean --configuration Release --runtime $(RUNTIME) \
+	dotnet clean --configuration $(CONFIG) --runtime $(RUNTIME) \
 	./MediaBrowser.sln
 
 restore:
-	dotnet restore --configuration Release --runtime $(RUNTIME) \
+	dotnet restore --configuration $(CONFIG) --runtime $(RUNTIME) \
 	./MediaBrowser.sln
 
 build:
-	dotnet publish --configuration Release --runtime $(RUNTIME) \
+	dotnet publish --configuration $(CONFIG) --runtime $(RUNTIME) \
 	./MediaBrowser.sln
