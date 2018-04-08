@@ -236,3 +236,5 @@ MediaBrowser.WebDashboard/dashboard-ui/.idea/
 /.vs/MediaBrowser/v15/Server/sqlite3
 
 EmbyServer/
+/.vs/VSWorkspaceState.json
+/.vs/slnx.sqlite
