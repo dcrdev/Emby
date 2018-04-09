@@ -13,9 +13,10 @@ cleanup:
 	./MediaBrowser.sln
 
 restore:
-	dotnet restore --configuration $(CONFIG) --runtime $(RUNTIME) \
-	./MediaBrowser.sln
+	dotnet restore --runtime $(RUNTIME) ./MediaBrowser.sln
 
 build:
-	dotnet publish --configuration $(CONFIG) --runtime $(RUNTIME) \
+	dotnet build --configuration $(CONFIG) --runtime $(RUNTIME) \
 	./MediaBrowser.sln
+run:
+	dotnet ./Emby.Server.Unix/bin/Release/netcoreapp2.0/linux-x64/Emby.Server.Unix.dll
