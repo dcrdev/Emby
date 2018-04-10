@@ -40,7 +40,10 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
-   <ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\iso6392.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Localization\countries.json" />
     <EmbeddedResource Include="Localization\Core\ar.json" />
     <EmbeddedResource Include="Localization\Core\bg-BG.json" />
@@ -77,7 +80,6 @@
     <EmbeddedResource Include="Localization\Core\en-US.json" />
     <EmbeddedResource Include="Localization\Core\el.json" />
     <EmbeddedResource Include="Localization\Core\gsw.json" />
-    <None Include="packages.config" />
     <None Include="TextEncoding\NLangDetect\Profiles\afr" />
     <None Include="TextEncoding\NLangDetect\Profiles\ara" />
     <None Include="TextEncoding\NLangDetect\Profiles\ben" />
@@ -113,9 +115,6 @@
     <None Include="TextEncoding\NLangDetect\Profiles\pol" />
     <None Include="TextEncoding\NLangDetect\Profiles\por" />
     <None Include="TextEncoding\NLangDetect\Profiles\ron" />
-    <None Include="TextEncoding\NLangDetect\Profiles\rus" />
-    <None Include="TextEncoding\NLangDetect\Profiles\slk" />
-    <None Include="TextEncoding\NLangDetect\Profiles\slv" />
     <None Include="TextEncoding\NLangDetect\Profiles\som" />
     <None Include="TextEncoding\NLangDetect\Profiles\spa" />
     <None Include="TextEncoding\NLangDetect\Profiles\sqi" />

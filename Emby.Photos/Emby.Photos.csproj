@@ -4,7 +4,7 @@
     <ProjectReference Include="..\MediaBrowser.Controller\MediaBrowser.Controller.csproj" />
     <ProjectReference Include="..\MediaBrowser.Model\MediaBrowser.Model.csproj" />
     <Reference Include="TagLib.Portable">
-      <HintPath>..\ThirdParty\taglib\TagLib.Portable.dll</HintPath>
+      <HintPath>..\ThirdParty\taglib\TagLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 
