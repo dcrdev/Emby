@@ -18,6 +18,10 @@ make
 make run
 ```
 
+## Command Line Arguments ##
+```
+Emby.Server.Unix.dll [-updatepackage string] [-programdata string] [-service] [-os string]
+```
 ## Developer Info ##
 
 [Api Docs](https://github.com/MediaBrowser/MediaBrowser/wiki "Api Workflow")
