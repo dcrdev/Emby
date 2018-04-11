@@ -14,6 +14,7 @@
     <ProjectReference Include="..\MediaBrowser.LocalMetadata\MediaBrowser.LocalMetadata.csproj" />
     <ProjectReference Include="..\Emby.Photos\Emby.Photos.csproj" />
     <ProjectReference Include="..\Emby.Drawing\Emby.Drawing.csproj" />
+    <ProjectReference Include="..\Emby.Naming\Emby.Naming.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,9 +24,6 @@
     <PackageReference Include="SimpleInjector" Version="4.0.12" />
     <PackageReference Include="SQLitePCL.pretty.core" Version="1.1.8" />
     <PackageReference Include="SQLitePCLRaw.core" Version="1.1.8" />
-    <Reference Include="Emby.Naming">
-      <HintPath>..\ThirdParty\emby\Emby.Naming.dll</HintPath>
-    </Reference>
     <Reference Include="Emby.Server.MediaEncoding">
       <HintPath>..\ThirdParty\emby\Emby.Server.MediaEncoding.dll</HintPath>
     </Reference>

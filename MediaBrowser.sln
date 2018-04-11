@@ -42,6 +42,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSDP", "RSSDP\RSSDP.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SocketHttpListener", "SocketHttpListener\SocketHttpListener.csproj", "{242E35C0-6341-4E34-9CDE-DB85850F9FFE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emby.Naming", "Emby.Naming\Emby.Naming.csproj", "{629603AC-50A1-46EE-89E4-AEDD540F8D2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -292,12 +294,24 @@ Global
 		{242E35C0-6341-4E34-9CDE-DB85850F9FFE}.Release|x64.Build.0 = Release|Any CPU
 		{242E35C0-6341-4E34-9CDE-DB85850F9FFE}.Release|x86.ActiveCfg = Release|Any CPU
 		{242E35C0-6341-4E34-9CDE-DB85850F9FFE}.Release|x86.Build.0 = Release|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Debug|x64.Build.0 = Debug|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Debug|x86.Build.0 = Debug|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Release|x64.ActiveCfg = Release|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Release|x64.Build.0 = Release|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Release|x86.ActiveCfg = Release|Any CPU
+		{629603AC-50A1-46EE-89E4-AEDD540F8D2B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		                SolutionGuid = {3448830C-EBDC-426C-85CD-7BBB9651A7FE}
 		SolutionGuid = {9CCDB70C-E167-4E1B-89F4-0032A36E69EF}
+		                SolutionGuid = {3448830C-EBDC-426C-85CD-7BBB9651A7FE}
 	EndGlobalSection
 EndGlobal
