@@ -13,11 +13,6 @@ cd ./Emby
 make
 ```
 
-## Running ##
-```
-make run
-```
-
 ## Command Line Arguments ##
 ```
 Emby.Server.Unix.dll [-updatepackage string] [-programdata string] [-service] [-os string]
