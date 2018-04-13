@@ -3,5 +3,6 @@
 /LICENSE.md merge=ours
 /README.md merge=ours
 /.gitignore merge=ours
+/Emby.Naming/ merge=ours
 /Emby.Server.Unix/ merge=ours
 /*/*.csproj merge=ours
