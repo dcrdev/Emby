@@ -1,4 +1,5 @@
 /MediaBrowser.sln merge=ours
+/MediaBrowser.sln.GhostDoc.xml merge=ours
 /LICENSE.md merge=ours
 /README.md merge=ours
 /.gitignore merge=ours
