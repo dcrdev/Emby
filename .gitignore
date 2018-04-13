@@ -230,10 +230,25 @@ pip-log.txt
 #Translations
 *.mo
 
-#Mr Developer
+# Mr Developer
 .mr.developer.cfg
 MediaBrowser.WebDashboard/dashboard-ui/.idea/
 
 Emby.Server.Unix/
-.vs/
-Help/
+/.vs/
+/Help/
+
+# Ignore unneeded upstream resources
+/SharedVersion.cs
+/*/Properties/
+/packages/
+/Tools/
+/MediaBrowser.Tests/
+/MediaBrowser.Server.Mono/
+/MediaBrowser.Server.Application/
+/NuGet/
+/.vs/
+/ThirdParty/
+/Docker/
+/*/*.nuget.*
+/*/packages.config
