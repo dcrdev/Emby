@@ -252,3 +252,4 @@ Emby.Server.Unix/
 /Docker/
 /*/*.nuget.*
 /*/packages.config
+/.vscode/

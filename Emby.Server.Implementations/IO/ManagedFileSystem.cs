@@ -30,7 +30,7 @@ namespace Emby.Server.Implementations.IO
 
         private string _defaultDirectory;
 
-        public ManagedFileSystem(ILogger logger, IEnvironmentInfo environmentInfo, string defaultDirectory, string tempPath)
+        public ManagedFileSystem(ILogger logger, IEnvironmentInfo environmentInfo, string defaultDirectory, string tempPath, bool enableSeparateFileAndDirectoryQueries)
         {
             Logger = logger;
             _supportsAsyncFileStreams = true;
@@ -38,10 +38,8 @@ namespace Emby.Server.Implementations.IO
             _environmentInfo = environmentInfo;
             _defaultDirectory = defaultDirectory;
 
-            // On Linux, this needs to be true or symbolic links are ignored
-            // TODO: See if still needed under .NET Core
-            EnableSeparateFileAndDirectoryQueries = environmentInfo.OperatingSystem != MediaBrowser.Model.System.OperatingSystem.Windows &&
-                environmentInfo.OperatingSystem != MediaBrowser.Model.System.OperatingSystem.OSX;
+            // On Linux with mono, this needs to be true or symbolic links are ignored
+            EnableSeparateFileAndDirectoryQueries = enableSeparateFileAndDirectoryQueries;
 
             SetInvalidFileNameChars(environmentInfo.OperatingSystem == MediaBrowser.Model.System.OperatingSystem.Windows);
 
@@ -148,6 +146,49 @@ namespace Emby.Server.Implementations.IO
             return null;
         }
 
+        public string MakeAbsolutePath(string folderPath, string filePath)
+        {
+            if (String.IsNullOrWhiteSpace(filePath)) return filePath;
+
+            if (filePath.Contains(@"://")) return filePath; //stream
+            if (filePath.Length > 3 && filePath[1] == ':' && filePath[2] == '/') return filePath; //absolute local path
+
+            // unc path
+            if (filePath.StartsWith("\\\\"))
+            {
+                return filePath;
+            }
+
+            var firstChar = filePath[0];
+            if (firstChar == '/')
+            {
+                // For this we don't really know. 
+                return filePath;
+            }
+            if (firstChar == '\\') //relative path
+            {
+                filePath = filePath.Substring(1);
+            }
+            try
+            {
+                string path = System.IO.Path.Combine(folderPath, filePath);
+                path = System.IO.Path.GetFullPath(path);
+                return path;
+            }
+            catch (ArgumentException ex)
+            {
+                return filePath;
+            }
+            catch (PathTooLongException)
+            {
+                return filePath;
+            }
+            catch (NotSupportedException)
+            {
+                return filePath;
+            }
+        }
+
         /// <summary>
         /// Creates the shortcut.
         /// </summary>
@@ -192,11 +233,6 @@ namespace Emby.Server.Implementations.IO
         /// <see cref="FileSystemMetadata.IsDirectory"/> property will be set to true and all other properties will reflect the properties of the directory.</remarks>
         public FileSystemMetadata GetFileSystemInfo(string path)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException("path");
-            }
-
             if (_sharpCifsFileSystem.IsEnabledForPath(path))
             {
                 return _sharpCifsFileSystem.GetFileSystemInfo(path);
@@ -237,11 +273,6 @@ namespace Emby.Server.Implementations.IO
         /// <para>For automatic handling of files <b>and</b> directories, use <see cref="GetFileSystemInfo"/>.</para></remarks>
         public FileSystemMetadata GetFileInfo(string path)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException("path");
-            }
-
             if (_sharpCifsFileSystem.IsEnabledForPath(path))
             {
                 return _sharpCifsFileSystem.GetFileInfo(path);
@@ -262,11 +293,6 @@ namespace Emby.Server.Implementations.IO
         /// <para>For automatic handling of files <b>and</b> directories, use <see cref="GetFileSystemInfo"/>.</para></remarks>
         public FileSystemMetadata GetDirectoryInfo(string path)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException("path");
-            }
-
             if (_sharpCifsFileSystem.IsEnabledForPath(path))
             {
                 return _sharpCifsFileSystem.GetDirectoryInfo(path);
@@ -288,10 +314,12 @@ namespace Emby.Server.Implementations.IO
 
             if (result.Exists)
             {
-                var attributes = info.Attributes;
-                result.IsDirectory = info is DirectoryInfo || (attributes & FileAttributes.Directory) == FileAttributes.Directory;
-                result.IsHidden = (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
-                result.IsReadOnly = (attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+                result.IsDirectory = info is DirectoryInfo || (info.Attributes & FileAttributes.Directory) == FileAttributes.Directory;
+
+                //if (!result.IsDirectory)
+                //{
+                //    result.IsHidden = (info.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
+                //}
 
                 var fileInfo = info as FileInfo;
                 if (fileInfo != null)
@@ -311,6 +339,25 @@ namespace Emby.Server.Implementations.IO
             return result;
         }
 
+        private ExtendedFileSystemInfo GetExtendedFileSystemInfo(string path)
+        {
+            var result = new ExtendedFileSystemInfo();
+
+            var info = new FileInfo(path);
+
+            if (info.Exists)
+            {
+                result.Exists = true;
+
+                var attributes = info.Attributes;
+
+                result.IsHidden = (attributes & FileAttributes.Hidden) == FileAttributes.Hidden;
+                result.IsReadOnly = (attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly;
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// The space char
         /// </summary>
@@ -324,11 +371,6 @@ namespace Emby.Server.Implementations.IO
         /// <exception cref="System.ArgumentNullException">filename</exception>
         public string GetValidFilename(string filename)
         {
-            if (string.IsNullOrEmpty(filename))
-            {
-                throw new ArgumentNullException("filename");
-            }
-
             var builder = new StringBuilder(filename);
 
             foreach (var c in _invalidFileNameChars)
@@ -514,7 +556,7 @@ namespace Emby.Server.Implementations.IO
                 return;
             }
 
-            var info = GetFileInfo(path);
+            var info = GetExtendedFileSystemInfo(path);
 
             if (info.Exists && info.IsHidden != isHidden)
             {
@@ -544,7 +586,7 @@ namespace Emby.Server.Implementations.IO
                 return;
             }
 
-            var info = GetFileInfo(path);
+            var info = GetExtendedFileSystemInfo(path);
 
             if (info.Exists && info.IsReadOnly != isReadOnly)
             {
@@ -574,7 +616,7 @@ namespace Emby.Server.Implementations.IO
                 return;
             }
 
-            var info = GetFileInfo(path);
+            var info = GetExtendedFileSystemInfo(path);
 
             if (!info.Exists)
             {
@@ -750,11 +792,6 @@ namespace Emby.Server.Implementations.IO
 
         public bool IsPathFile(string path)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException("path");
-            }
-
             // Cannot use Path.IsPathRooted because it returns false under mono when using windows-based paths, e.g. C:\\
 
             if (_sharpCifsFileSystem.IsEnabledForPath(path))

@@ -141,7 +141,6 @@ namespace MediaBrowser.Providers.TV
             return _jsonSerializer.DeserializeFromFile<RootObject>(dataFilePath);
         }
 
-        private readonly Task _cachedTask = Task.FromResult(true);
         internal Task EnsureSeasonInfo(string tmdbId, int seasonNumber, string language, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(tmdbId))
@@ -160,9 +159,9 @@ namespace MediaBrowser.Providers.TV
             if (fileInfo.Exists)
             {
                 // If it's recent or automatic updates are enabled, don't re-download
-                if ((DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= 3)
+                if ((DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= 2)
                 {
-                    return _cachedTask;
+                    return Task.CompletedTask;
                 }
             }
 
@@ -224,7 +223,7 @@ namespace MediaBrowser.Providers.TV
             {
                 using (var json = response.Content)
                 {
-                    return _jsonSerializer.DeserializeFromStream<RootObject>(json);
+                    return await _jsonSerializer.DeserializeFromStreamAsync<RootObject>(json).ConfigureAwait(false);
                 }
             }
         }

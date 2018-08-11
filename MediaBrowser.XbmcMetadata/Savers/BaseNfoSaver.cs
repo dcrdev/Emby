@@ -44,7 +44,6 @@ namespace MediaBrowser.XbmcMetadata.Savers
                     "sorttitle",
                     "mpaa",
                     "aspectratio",
-                    "website",
                     "collectionnumber",
                     "tmdbid",
                     "rottentomatoesid",
@@ -209,27 +208,15 @@ namespace MediaBrowser.XbmcMetadata.Savers
         private void SaveToFile(Stream stream, string path)
         {
             FileSystem.CreateDirectory(FileSystem.GetDirectoryName(path));
-
-            var file = FileSystem.GetFileInfo(path);
-
-            var wasHidden = false;
-
-            // This will fail if the file is hidden
-            if (file.Exists)
-            {
-                if (file.IsHidden)
-                {
-                    wasHidden = true;
-                }
-                FileSystem.SetAttributes(path, false, false);
-            }
+            // On Windows, savint the file will fail if the file is hidden or readonly
+            FileSystem.SetAttributes(path, false, false);
 
             using (var filestream = FileSystem.GetFileStream(path, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read))
             {
                 stream.CopyTo(filestream);
             }
 
-            if (wasHidden || ConfigurationManager.Configuration.SaveMetadataHidden)
+            if (ConfigurationManager.Configuration.SaveMetadataHidden)
             {
                 SetHidden(path, true);
             }
@@ -396,8 +383,8 @@ namespace MediaBrowser.XbmcMetadata.Savers
                     {
                         var timespan = TimeSpan.FromTicks(runtimeTicks.Value);
 
-                        writer.WriteElementString("duration", Convert.ToInt32(timespan.TotalMinutes).ToString(UsCulture));
-                        writer.WriteElementString("durationinseconds", Convert.ToInt32(timespan.TotalSeconds).ToString(UsCulture));
+                        writer.WriteElementString("duration", Math.Floor(timespan.TotalMinutes).ToString(UsCulture));
+                        writer.WriteElementString("durationinseconds", Math.Floor(timespan.TotalSeconds).ToString(UsCulture));
                     }
 
                     var video = item as Video;
@@ -541,13 +528,9 @@ namespace MediaBrowser.XbmcMetadata.Savers
                 writer.WriteElementString("credits", person);
             }
 
-            var hasTrailer = item as IHasTrailers;
-            if (hasTrailer != null)
+            foreach (var trailer in item.RemoteTrailers)
             {
-                foreach (var trailer in hasTrailer.RemoteTrailers)
-                {
-                    writer.WriteElementString("trailer", GetOutputTrailerUrl(trailer.Url));
-                }
+                writer.WriteElementString("trailer", GetOutputTrailerUrl(trailer.Url));
             }
 
             if (item.CommunityRating.HasValue)
@@ -578,11 +561,6 @@ namespace MediaBrowser.XbmcMetadata.Savers
                 {
                     writer.WriteElementString("aspectratio", hasAspectRatio.AspectRatio);
                 }
-            }
-
-            if (!string.IsNullOrEmpty(item.HomePageUrl))
-            {
-                writer.WriteElementString("website", item.HomePageUrl);
             }
 
             var tmdbCollection = item.GetProviderId(MetadataProviders.TmdbCollection);
@@ -681,7 +659,7 @@ namespace MediaBrowser.XbmcMetadata.Savers
             {
                 var timespan = TimeSpan.FromTicks(runTimeTicks.Value);
 
-                writer.WriteElementString("runtime", Convert.ToInt32(timespan.TotalMinutes).ToString(UsCulture));
+                writer.WriteElementString("runtime", Convert.ToInt64(timespan.TotalMinutes).ToString(UsCulture));
             }
 
             if (!string.IsNullOrWhiteSpace(item.Tagline))
@@ -827,23 +805,6 @@ namespace MediaBrowser.XbmcMetadata.Savers
             if (folder != null)
             {
                 AddCollectionItems(folder, writer);
-            }
-        }
-
-        public static void AddChapters(Video item, XmlWriter writer, IItemRepository repository)
-        {
-            var chapters = repository.GetChapters(item.Id);
-
-            foreach (var chapter in chapters)
-            {
-                writer.WriteStartElement("chapter");
-                writer.WriteElementString("name", chapter.Name);
-
-                var time = TimeSpan.FromTicks(chapter.StartPositionTicks);
-                var ms = Convert.ToInt64(time.TotalMilliseconds);
-
-                writer.WriteElementString("startpositionms", ms.ToString(UsCulture));
-                writer.WriteEndElement();
             }
         }
 

@@ -30,8 +30,23 @@ namespace MediaBrowser.Providers.BoxSets
             if (mergeMetadataSettings)
             {
                 targetItem.LinkedChildren = sourceItem.LinkedChildren;
-                targetItem.Shares = sourceItem.Shares;
             }
+        }
+
+        protected override ItemUpdateType BeforeSaveInternal(BoxSet item, bool isFullRefresh, ItemUpdateType currentUpdateType)
+        {
+            var updateType = base.BeforeSaveInternal(item, isFullRefresh, currentUpdateType);
+
+            var libraryFolderIds = item.GetLibraryFolderIds();
+
+            var itemLibraryFolderIds = item.LibraryFolderIds;
+            if (itemLibraryFolderIds == null || !libraryFolderIds.SequenceEqual(itemLibraryFolderIds))
+            {
+                item.LibraryFolderIds = libraryFolderIds;
+                updateType |= ItemUpdateType.MetadataImport;
+            }
+
+            return updateType;
         }
 
         public BoxSetMetadataService(IServerConfigurationManager serverConfigurationManager, ILogger logger, IProviderManager providerManager, IFileSystem fileSystem, IUserDataManager userDataManager, ILibraryManager libraryManager) : base(serverConfigurationManager, logger, providerManager, fileSystem, userDataManager, libraryManager)
@@ -55,6 +70,14 @@ namespace MediaBrowser.Providers.BoxSets
         }
 
         protected override bool EnableUpdatingStudiosFromChildren
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        protected override bool EnableUpdatingPremiereDateFromChildren
         {
             get
             {

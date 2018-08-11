@@ -183,7 +183,7 @@ namespace MediaBrowser.Providers.Music
                         Language = i.lang
                     };
 
-                    if (!string.IsNullOrEmpty(likesString) && int.TryParse(likesString, NumberStyles.Any, _usCulture, out likes))
+                    if (!string.IsNullOrEmpty(likesString) && int.TryParse(likesString, NumberStyles.Integer, _usCulture, out likes))
                     {
                         info.CommunityRating = likes;
                     }
@@ -209,7 +209,6 @@ namespace MediaBrowser.Providers.Music
             });
         }
 
-        private readonly Task _cachedTask = Task.FromResult(true);
         internal Task EnsureArtistJson(string musicBrainzId, CancellationToken cancellationToken)
         {
             var jsonPath = GetArtistJsonPath(_config.ApplicationPaths, musicBrainzId);
@@ -218,9 +217,9 @@ namespace MediaBrowser.Providers.Music
 
             if (fileInfo.Exists)
             {
-                if ((DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= 7)
+                if ((DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= 2)
                 {
-                    return _cachedTask;
+                    return Task.CompletedTask;
                 }
             }
 

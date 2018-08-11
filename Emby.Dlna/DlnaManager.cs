@@ -220,7 +220,7 @@ namespace Emby.Dlna
             }
             else
             {
-                var headerString = string.Join(", ", headers.Select(i => string.Format("{0}={1}", i.Key, i.Value)).ToArray(headers.Count));
+                var headerString = string.Join(", ", headers.Select(i => string.Format("{0}={1}", i.Key, i.Value)).ToArray());
                 _logger.Debug("No matching device profile found. {0}", headerString);
             }
 
@@ -531,7 +531,7 @@ namespace Emby.Dlna
         }
     }
 
-    class DlnaProfileEntryPoint : IServerEntryPoint
+    class DlnaProfileEntryPoint /*: IServerEntryPoint*/
     {
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
@@ -546,7 +546,7 @@ namespace Emby.Dlna
 
         public void Run()
         {
-            //DumpProfiles();
+            DumpProfiles();
         }
 
         private void DumpProfiles()
@@ -595,7 +595,6 @@ namespace Emby.Dlna
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
         }
     }
 }

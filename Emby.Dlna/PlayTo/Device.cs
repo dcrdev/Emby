@@ -175,6 +175,11 @@ namespace Emby.Dlna.PlayTo
             }
         }
 
+        public void OnPlaybackStartedExternally()
+        {
+            RestartTimer(true);
+        }
+
         #region Commanding
 
         public Task VolumeDown(CancellationToken cancellationToken)
@@ -368,7 +373,7 @@ namespace Emby.Dlna.PlayTo
         {
             var command = avCommands.ServiceActions.FirstOrDefault(c => c.Name == "Play");
             if (command == null)
-                return Task.FromResult(true);
+                return Task.CompletedTask;
 
             var service = GetAvTransportService();
 
@@ -438,6 +443,11 @@ namespace Emby.Dlna.PlayTo
                 var cancellationToken = CancellationToken.None;
 
                 var avCommands = await GetAVProtocolAsync(cancellationToken).ConfigureAwait(false);
+
+                if (avCommands == null)
+                {
+                    return;
+                }
 
                 var transportState = await GetTransportInfo(avCommands, cancellationToken).ConfigureAwait(false);
 
@@ -1020,8 +1030,8 @@ namespace Emby.Dlna.PlayTo
             var depth = element.GetDescendantValue(uPnpNamespaces.ud.GetName("depth"));
             var url = element.GetDescendantValue(uPnpNamespaces.ud.GetName("url"));
 
-            var widthValue = int.Parse(width, NumberStyles.Any, UsCulture);
-            var heightValue = int.Parse(height, NumberStyles.Any, UsCulture);
+            var widthValue = int.Parse(width, NumberStyles.Integer, UsCulture);
+            var heightValue = int.Parse(height, NumberStyles.Integer, UsCulture);
 
             return new DeviceIcon
             {
@@ -1147,7 +1157,6 @@ namespace Emby.Dlna.PlayTo
                 _disposed = true;
 
                 DisposeTimer();
-                GC.SuppressFinalize(this);
             }
         }
 

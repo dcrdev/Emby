@@ -77,7 +77,7 @@ namespace Emby.Server.Implementations.EntryPoints
                 // Go up one level for indicators
                 if (baseItem != null)
                 {
-                    var parent = baseItem.IsOwnedItem ? baseItem.GetOwner() : baseItem.GetParent();
+                    var parent = baseItem.GetOwner() ?? baseItem.GetParent();
 
                     if (parent != null)
                     {
@@ -115,9 +115,7 @@ namespace Emby.Server.Implementations.EntryPoints
 
         private Task SendNotifications(Guid userId, List<BaseItem> changedItems, CancellationToken cancellationToken)
         {
-            var userIdString = userId.ToString("N");
-
-            return _sessionManager.SendMessageToUserSessions(new List<string> { userIdString }, "UserDataChanged", () => GetUserDataChangeInfo(userId, changedItems), cancellationToken);
+            return _sessionManager.SendMessageToUserSessions(new List<Guid> { userId }, "UserDataChanged", () => GetUserDataChangeInfo(userId, changedItems), cancellationToken);
         }
 
         private UserDataChangeInfo GetUserDataChangeInfo(Guid userId, List<BaseItem> changedItems)
@@ -153,7 +151,6 @@ namespace Emby.Server.Implementations.EntryPoints
             }
 
             _userDataManager.UserDataSaved -= _userDataManager_UserDataSaved;
-            GC.SuppressFinalize(this);
         }
     }
 }

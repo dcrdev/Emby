@@ -173,7 +173,7 @@ namespace Emby.Server.Implementations.HttpServer
 
                     if (extension == null || !SkipLogExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                     {
-                        Logger.Info("Transmit file {0}", path);
+                        Logger.Debug("Transmit file {0}", path);
                     }
 
                     //var count = FileShare == FileShareMode.ReadWrite ? TotalContentLength : 0;

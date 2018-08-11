@@ -64,7 +64,7 @@ namespace MediaBrowser.Providers.MediaInfo
         {
             var protocol = item.PathProtocol ?? MediaProtocol.File;
 
-            var inputPath = MediaEncoderHelpers.GetInputArgument(_fileSystem, item.Path, protocol, null, item.GetPlayableStreamFileNames());
+            var inputPath = MediaEncoderHelpers.GetInputArgument(_fileSystem, item.Path, protocol, null, item.GetPlayableStreamFileNames(_mediaEncoder));
 
             var mediaStreams =
                 item.GetMediaStreams();
@@ -129,9 +129,18 @@ namespace MediaBrowser.Providers.MediaInfo
 
         public bool Supports(BaseItem item)
         {
+            if (item.IsShortcut)
+            {
+                return false;
+            }
+            if (!item.IsFileProtocol)
+            {
+                return false;
+            }
+
             var video = item as Video;
 
-            if (item.IsFileProtocol && video != null && !video.IsPlaceHolder && !video.IsShortcut && video.IsCompleteMedia)
+            if (video != null && !video.IsPlaceHolder && video.IsCompleteMedia)
             {
                 return true;
             }

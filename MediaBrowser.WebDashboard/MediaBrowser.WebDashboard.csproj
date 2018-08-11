@@ -1,23 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
-    <ProjectReference Include="..\MediaBrowser.Controller\MediaBrowser.Controller.csproj" />
-    <ProjectReference Include="..\MediaBrowser.Common\MediaBrowser.Common.csproj" />
+    <PackageReference Include="MediaBrowser.Common" Version="3.5.0"/>
+    <PackageReference Include="MediaBrowser.Server.Core" Version="3.5.0"/>
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="..\SharedVersion.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="dashboard-ui\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <EmbeddedResource Include="dashboard-ui\**\*.*">
+      <Link>resources\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
+    <None Include="packages.config" />
   </ItemGroup>
-
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-
 </Project>

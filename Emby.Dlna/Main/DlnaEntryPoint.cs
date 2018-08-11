@@ -8,13 +8,12 @@ using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.Session;
+using MediaBrowser.Controller.TV;
 using Emby.Dlna.PlayTo;
 using Emby.Dlna.Ssdp;
 using MediaBrowser.Model.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
@@ -22,13 +21,14 @@ using MediaBrowser.Model.Globalization;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.System;
 using MediaBrowser.Model.Threading;
+using MediaBrowser.Model.Xml;
 using Rssdp;
 using Rssdp.Infrastructure;
 using System.Threading;
 
 namespace Emby.Dlna.Main
 {
-    public class DlnaEntryPoint : IServerEntryPoint
+    public class DlnaEntryPoint : IServerEntryPoint, IRunBeforeStartup
     {
         private readonly IServerConfigurationManager _config;
         private readonly ILogger _logger;
@@ -57,6 +57,12 @@ namespace Emby.Dlna.Main
 
         private ISsdpCommunicationsServer _communicationsServer;
 
+        internal IContentDirectory ContentDirectory { get; private set; }
+        internal IConnectionManager ConnectionManager { get; private set; }
+        internal IMediaReceiverRegistrar MediaReceiverRegistrar { get; private set; }
+
+        public static DlnaEntryPoint Current;
+
         public DlnaEntryPoint(IServerConfigurationManager config,
             ILogManager logManager,
             IServerApplicationHost appHost,
@@ -67,9 +73,17 @@ namespace Emby.Dlna.Main
             IDlnaManager dlnaManager,
             IImageProcessor imageProcessor,
             IUserDataManager userDataManager,
-            ILocalizationManager localization,
+            ILocalizationManager localizationManager,
             IMediaSourceManager mediaSourceManager,
-            IDeviceDiscovery deviceDiscovery, IMediaEncoder mediaEncoder, ISocketFactory socketFactory, ITimerFactory timerFactory, IEnvironmentInfo environmentInfo, INetworkManager networkManager)
+            IDeviceDiscovery deviceDiscovery, 
+            IMediaEncoder mediaEncoder, 
+            ISocketFactory socketFactory, 
+            ITimerFactory timerFactory, 
+            IEnvironmentInfo environmentInfo, 
+            INetworkManager networkManager,
+            IUserViewManager userViewManager,
+            IXmlReaderSettingsFactory xmlReaderSettingsFactory,
+            ITVSeriesManager tvSeriesManager)
         {
             _config = config;
             _appHost = appHost;
@@ -80,7 +94,7 @@ namespace Emby.Dlna.Main
             _dlnaManager = dlnaManager;
             _imageProcessor = imageProcessor;
             _userDataManager = userDataManager;
-            _localization = localization;
+            _localization = localizationManager;
             _mediaSourceManager = mediaSourceManager;
             _deviceDiscovery = deviceDiscovery;
             _mediaEncoder = mediaEncoder;
@@ -89,6 +103,26 @@ namespace Emby.Dlna.Main
             _environmentInfo = environmentInfo;
             _networkManager = networkManager;
             _logger = logManager.GetLogger("Dlna");
+
+            ContentDirectory = new ContentDirectory.ContentDirectory(dlnaManager, 
+                userDataManager, 
+                imageProcessor, 
+                libraryManager, 
+                config, 
+                userManager, 
+                _logger, 
+                httpClient, 
+                localizationManager, 
+                mediaSourceManager, 
+                userViewManager,
+                mediaEncoder, 
+                xmlReaderSettingsFactory, 
+                tvSeriesManager);
+
+            ConnectionManager = new ConnectionManager.ConnectionManager(dlnaManager, config, _logger, httpClient, xmlReaderSettingsFactory);
+
+            MediaReceiverRegistrar = new MediaReceiverRegistrar.MediaReceiverRegistrar(_logger, httpClient, config, xmlReaderSettingsFactory);
+            Current = this;
         }
 
         public void Run()
@@ -116,7 +150,7 @@ namespace Emby.Dlna.Main
 
             if (options.EnableServer)
             {
-                await StartDevicePublisher().ConfigureAwait(false);
+                await StartDevicePublisher(options).ConfigureAwait(false);
             }
             else
             {
@@ -185,9 +219,9 @@ namespace Emby.Dlna.Main
             }
         }
 
-        public async Task StartDevicePublisher()
+        public async Task StartDevicePublisher(Configuration.DlnaOptions options)
         {
-            if (!_config.GetDlnaConfiguration().BlastAliveMessages)
+            if (!options.BlastAliveMessages)
             {
                 return;
             }
@@ -204,6 +238,8 @@ namespace Emby.Dlna.Main
                 _Publisher.SupportPnpRootDevice = false;
 
                 await RegisterServerEndpoints().ConfigureAwait(false);
+
+                _Publisher.StartBroadcastingAliveMessages(TimeSpan.FromSeconds(options.BlastAliveMessageIntervalSeconds));
             }
             catch (Exception ex)
             {
@@ -213,8 +249,6 @@ namespace Emby.Dlna.Main
 
         private async Task RegisterServerEndpoints()
         {
-            var cacheLength = _config.GetDlnaConfiguration().BlastAliveMessageIntervalSeconds;
-
             var addresses = (await _appHost.GetLocalIpAddresses(CancellationToken.None).ConfigureAwait(false)).ToList();
 
             var udn = CreateUuid(_appHost.SystemId);
@@ -236,7 +270,7 @@ namespace Emby.Dlna.Main
 
                 var device = new SsdpRootDevice
                 {
-                    CacheLifetime = TimeSpan.FromSeconds(cacheLength), //How long SSDP clients can cache this info.
+                    CacheLifetime = TimeSpan.FromSeconds(1800), //How long SSDP clients can cache this info.
                     Location = uri, // Must point to the URL that serves your devices UPnP description document. 
                     FriendlyName = "Emby Server",
                     Manufacturer = "Emby",
@@ -248,7 +282,7 @@ namespace Emby.Dlna.Main
                 SetProperies(device, fullService);
                 _Publisher.AddDevice(device);
 
-                var embeddedDevices = new List<string>
+                var embeddedDevices = new []
                 {
                     "urn:schemas-upnp-org:service:ContentDirectory:1",
                     "urn:schemas-upnp-org:service:ConnectionManager:1",
@@ -364,7 +398,11 @@ namespace Emby.Dlna.Main
                 _communicationsServer.Dispose();
                 _communicationsServer = null;
             }
-            GC.SuppressFinalize(this);
+
+            ContentDirectory = null;
+            ConnectionManager = null;
+            MediaReceiverRegistrar = null;
+            Current = null;
         }
 
         public void DisposeDevicePublisher()

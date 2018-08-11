@@ -1,184 +1,178 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\MediaBrowser.Model\MediaBrowser.Model.csproj" />
-    <ProjectReference Include="..\MediaBrowser.Common\MediaBrowser.Common.csproj" />
-    <ProjectReference Include="..\MediaBrowser.Controller\MediaBrowser.Controller.csproj" />
-    <ProjectReference Include="..\MediaBrowser.Providers\MediaBrowser.Providers.csproj" />
-    <ProjectReference Include="..\MediaBrowser.WebDashboard\MediaBrowser.WebDashboard.csproj" />
-    <ProjectReference Include="..\MediaBrowser.XbmcMetadata\MediaBrowser.XbmcMetadata.csproj" />
-    <ProjectReference Include="..\SocketHttpListener\SocketHttpListener.csproj" />
-    <ProjectReference Include="..\Emby.Dlna\Emby.Dlna.csproj" />
-    <ProjectReference Include="..\Mono.Nat\Mono.Nat.csproj" />
-    <ProjectReference Include="..\MediaBrowser.Api\MediaBrowser.Api.csproj" />
-    <ProjectReference Include="..\MediaBrowser.LocalMetadata\MediaBrowser.LocalMetadata.csproj" />
-    <ProjectReference Include="..\Emby.Photos\Emby.Photos.csproj" />
-    <ProjectReference Include="..\Emby.Drawing\Emby.Drawing.csproj" />
-    <ProjectReference Include="..\Emby.Naming\Emby.Naming.csproj" />
+    <ProjectReference Include="..\MediaBrowser.Providers\MediaBrowser.Providers.csproj"/>
+    <ProjectReference Include="..\MediaBrowser.WebDashboard\MediaBrowser.WebDashboard.csproj"/>
+    <ProjectReference Include="..\MediaBrowser.XbmcMetadata\MediaBrowser.XbmcMetadata.csproj"/>
+    <ProjectReference Include="..\SocketHttpListener\SocketHttpListener.csproj"/>
+    <ProjectReference Include="..\Emby.Dlna\Emby.Dlna.csproj"/>
+    <ProjectReference Include="..\Mono.Nat\Mono.Nat.csproj"/>
+    <ProjectReference Include="..\MediaBrowser.Api\MediaBrowser.Api.csproj"/>
+    <ProjectReference Include="..\MediaBrowser.LocalMetadata\MediaBrowser.LocalMetadata.csproj"/>
+    <ProjectReference Include="..\Emby.Photos\Emby.Photos.csproj"/>
+    <ProjectReference Include="..\Emby.Drawing\Emby.Drawing.csproj"/>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Emby.XmlTv" Version="1.0.14" />
-    <PackageReference Include="ServiceStack.Text.Core" Version="1.0.44" />
-    <PackageReference Include="sharpcompress" Version="0.18.2" />
-    <PackageReference Include="SimpleInjector" Version="4.0.12" />
-    <PackageReference Include="SQLitePCL.pretty.core" Version="1.1.8" />
-    <PackageReference Include="SQLitePCLRaw.core" Version="1.1.8" />
+    <PackageReference Include="MediaBrowser.Common" Version="3.5.0"/>
+    <PackageReference Include="MediaBrowser.Server.Core" Version="3.5.0"/>
+    <PackageReference Include="Emby.XmlTv" Version="1.0.14"/>
+    <PackageReference Include="ServiceStack.Text.Core" Version="1.0.44"/>
+    <PackageReference Include="sharpcompress" Version="0.18.2"/>
+    <PackageReference Include="SimpleInjector" Version="4.0.12"/>
+    <PackageReference Include="SQLitePCL.pretty.core" Version="1.1.8"/>
+    <PackageReference Include="SQLitePCLRaw.core" Version="1.1.8"/>
+    <PackageReference Include="MediaBrowser.Naming" Version="1.1.7-beta"/>
     <Reference Include="Emby.Server.MediaEncoding">
       <HintPath>..\ThirdParty\emby\Emby.Server.MediaEncoding.dll</HintPath>
     </Reference>
   </ItemGroup>
-
   <ItemGroup>
-    <Compile Include="..\SharedVersion.cs" />
+    <Compile Include="..\SharedVersion.cs"/>
   </ItemGroup>
-
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\iso6392.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\countries.json"/>
+    <EmbeddedResource Include="Localization\Core\ar.json"/>
+    <EmbeddedResource Include="Localization\Core\bg-BG.json"/>
+    <EmbeddedResource Include="Localization\Core\ca.json"/>
+    <EmbeddedResource Include="Localization\Core\cs.json"/>
+    <EmbeddedResource Include="Localization\Core\da.json"/>
+    <EmbeddedResource Include="Localization\Core\de.json"/>
+    <EmbeddedResource Include="Localization\Core\en-GB.json"/>
+    <EmbeddedResource Include="Localization\Core\es-AR.json"/>
+    <EmbeddedResource Include="Localization\Core\es-MX.json"/>
+    <EmbeddedResource Include="Localization\Core\es.json"/>
+    <EmbeddedResource Include="Localization\Core\fr-CA.json"/>
+    <EmbeddedResource Include="Localization\Core\fr.json"/>
+    <EmbeddedResource Include="Localization\Core\he.json"/>
+    <EmbeddedResource Include="Localization\Core\hr.json"/>
+    <EmbeddedResource Include="Localization\Core\hu.json"/>
+    <EmbeddedResource Include="Localization\Core\it.json"/>
+    <EmbeddedResource Include="Localization\Core\kk.json"/>
+    <EmbeddedResource Include="Localization\Core\ko.json"/>
+    <EmbeddedResource Include="Localization\Core\lt-LT.json"/>
+    <EmbeddedResource Include="Localization\Core\ms.json"/>
+    <EmbeddedResource Include="Localization\Core\nb.json"/>
+    <EmbeddedResource Include="Localization\Core\nl.json"/>
+    <EmbeddedResource Include="Localization\Core\pl.json"/>
+    <EmbeddedResource Include="Localization\Core\pt-BR.json"/>
+    <EmbeddedResource Include="Localization\Core\pt-PT.json"/>
+    <EmbeddedResource Include="Localization\Core\ru.json"/>
+    <EmbeddedResource Include="Localization\Core\sk.json"/>
+    <EmbeddedResource Include="Localization\Core\sl-SI.json"/>
+    <EmbeddedResource Include="Localization\Core\sv.json"/>
+    <EmbeddedResource Include="Localization\Core\tr.json"/>
+    <EmbeddedResource Include="Localization\Core\zh-CN.json"/>
+    <EmbeddedResource Include="Localization\Core\zh-HK.json"/>
+    <EmbeddedResource Include="Localization\Core\en-US.json"/>
+    <EmbeddedResource Include="Localization\Core\el.json"/>
+    <EmbeddedResource Include="Localization\Core\gsw.json"/>
+    <EmbeddedResource Include="TextEncoding\NLangDetect\Profiles\zh-cn"/>
+    <EmbeddedResource Include="TextEncoding\NLangDetect\Profiles\zh-tw"/>
+    <EmbeddedResource Include="TextEncoding\NLangDetect\Utils\messages.properties"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\afr"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ara"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ben"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\bul"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ces"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\dan"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\deu"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ell"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\eng"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\est"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\fas"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\fin"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\fra"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\guj"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\heb"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\hin"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\hrv"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\hun"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ind"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ita"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\jpn"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\kan"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\kor"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\lav"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\lit"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\mal"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\mar"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\mkd"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\nep"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\nld"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\nor"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\pan"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\pol"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\por"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ron"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\som"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\spa"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\sqi"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\swa"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\swe"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\tam"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\tel"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\tgl"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\tha"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\tur"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\ukr"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\urd"/>
+    <None Include="TextEncoding\NLangDetect\Profiles\vie"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\br.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\ca.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\co.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\dk.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\fr.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\gb.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\ie.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\jp.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\kz.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\mx.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\nl.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\nz.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\us.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\uk.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\es.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\Ratings\ro.txt"/>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="values.txt"/>
+  </ItemGroup>
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\iso6392.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\countries.json" />
-    <EmbeddedResource Include="Localization\Core\ar.json" />
-    <EmbeddedResource Include="Localization\Core\bg-BG.json" />
-    <EmbeddedResource Include="Localization\Core\ca.json" />
-    <EmbeddedResource Include="Localization\Core\cs.json" />
-    <EmbeddedResource Include="Localization\Core\da.json" />
-    <EmbeddedResource Include="Localization\Core\de.json" />
-    <EmbeddedResource Include="Localization\Core\en-GB.json" />
-    <EmbeddedResource Include="Localization\Core\es-AR.json" />
-    <EmbeddedResource Include="Localization\Core\es-MX.json" />
-    <EmbeddedResource Include="Localization\Core\es.json" />
-    <EmbeddedResource Include="Localization\Core\fr-CA.json" />
-    <EmbeddedResource Include="Localization\Core\fr.json" />
-    <EmbeddedResource Include="Localization\Core\he.json" />
-    <EmbeddedResource Include="Localization\Core\hr.json" />
-    <EmbeddedResource Include="Localization\Core\hu.json" />
-    <EmbeddedResource Include="Localization\Core\it.json" />
-    <EmbeddedResource Include="Localization\Core\kk.json" />
-    <EmbeddedResource Include="Localization\Core\ko.json" />
-    <EmbeddedResource Include="Localization\Core\lt-LT.json" />
-    <EmbeddedResource Include="Localization\Core\ms.json" />
-    <EmbeddedResource Include="Localization\Core\nb.json" />
-    <EmbeddedResource Include="Localization\Core\nl.json" />
-    <EmbeddedResource Include="Localization\Core\pl.json" />
-    <EmbeddedResource Include="Localization\Core\pt-BR.json" />
-    <EmbeddedResource Include="Localization\Core\pt-PT.json" />
-    <EmbeddedResource Include="Localization\Core\ru.json" />
-    <EmbeddedResource Include="Localization\Core\sk.json" />
-    <EmbeddedResource Include="Localization\Core\sl-SI.json" />
-    <EmbeddedResource Include="Localization\Core\sv.json" />
-    <EmbeddedResource Include="Localization\Core\tr.json" />
-    <EmbeddedResource Include="Localization\Core\zh-CN.json" />
-    <EmbeddedResource Include="Localization\Core\zh-HK.json" />
-    <EmbeddedResource Include="Localization\Core\en-US.json" />
-    <EmbeddedResource Include="Localization\Core\el.json" />
-    <EmbeddedResource Include="Localization\Core\gsw.json" />
-    <None Include="TextEncoding\NLangDetect\Profiles\afr" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ara" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ben" />
-    <None Include="TextEncoding\NLangDetect\Profiles\bul" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ces" />
-    <None Include="TextEncoding\NLangDetect\Profiles\dan" />
-    <None Include="TextEncoding\NLangDetect\Profiles\deu" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ell" />
-    <None Include="TextEncoding\NLangDetect\Profiles\eng" />
-    <None Include="TextEncoding\NLangDetect\Profiles\est" />
-    <None Include="TextEncoding\NLangDetect\Profiles\fas" />
-    <None Include="TextEncoding\NLangDetect\Profiles\fin" />
-    <None Include="TextEncoding\NLangDetect\Profiles\fra" />
-    <None Include="TextEncoding\NLangDetect\Profiles\guj" />
-    <None Include="TextEncoding\NLangDetect\Profiles\heb" />
-    <None Include="TextEncoding\NLangDetect\Profiles\hin" />
-    <None Include="TextEncoding\NLangDetect\Profiles\hrv" />
-    <None Include="TextEncoding\NLangDetect\Profiles\hun" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ind" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ita" />
-    <None Include="TextEncoding\NLangDetect\Profiles\jpn" />
-    <None Include="TextEncoding\NLangDetect\Profiles\kan" />
-    <None Include="TextEncoding\NLangDetect\Profiles\kor" />
-    <None Include="TextEncoding\NLangDetect\Profiles\lav" />
-    <None Include="TextEncoding\NLangDetect\Profiles\lit" />
-    <None Include="TextEncoding\NLangDetect\Profiles\mal" />
-    <None Include="TextEncoding\NLangDetect\Profiles\mar" />
-    <None Include="TextEncoding\NLangDetect\Profiles\mkd" />
-    <None Include="TextEncoding\NLangDetect\Profiles\nep" />
-    <None Include="TextEncoding\NLangDetect\Profiles\nld" />
-    <None Include="TextEncoding\NLangDetect\Profiles\nor" />
-    <None Include="TextEncoding\NLangDetect\Profiles\pan" />
-    <None Include="TextEncoding\NLangDetect\Profiles\pol" />
-    <None Include="TextEncoding\NLangDetect\Profiles\por" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ron" />
-    <None Include="TextEncoding\NLangDetect\Profiles\som" />
-    <None Include="TextEncoding\NLangDetect\Profiles\spa" />
-    <None Include="TextEncoding\NLangDetect\Profiles\sqi" />
-    <None Include="TextEncoding\NLangDetect\Profiles\swa" />
-    <None Include="TextEncoding\NLangDetect\Profiles\swe" />
-    <None Include="TextEncoding\NLangDetect\Profiles\tam" />
-    <None Include="TextEncoding\NLangDetect\Profiles\tel" />
-    <None Include="TextEncoding\NLangDetect\Profiles\tgl" />
-    <None Include="TextEncoding\NLangDetect\Profiles\tha" />
-    <None Include="TextEncoding\NLangDetect\Profiles\tur" />
-    <None Include="TextEncoding\NLangDetect\Profiles\ukr" />
-    <None Include="TextEncoding\NLangDetect\Profiles\urd" />
-    <None Include="TextEncoding\NLangDetect\Profiles\vie" />
-    <EmbeddedResource Include="TextEncoding\NLangDetect\Profiles\zh-cn" />
-    <EmbeddedResource Include="TextEncoding\NLangDetect\Profiles\zh-tw" />
-    <EmbeddedResource Include="TextEncoding\NLangDetect\Utils\messages.properties" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\br.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\ca.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\co.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\dk.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\fr.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\gb.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\ie.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\jp.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\kz.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\mx.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\nl.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\nz.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\us.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\uk.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\es.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Localization\Ratings\ro.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="values.txt" />
-  </ItemGroup>
 </Project>

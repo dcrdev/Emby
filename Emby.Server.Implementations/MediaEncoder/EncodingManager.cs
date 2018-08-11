@@ -133,6 +133,8 @@ namespace Emby.Server.Implementations.MediaEncoder
                 {
                     if (extractImages)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         try
                         {
                             // Add some time for the first chapter to make sure we don't end up with a black image
@@ -140,7 +142,7 @@ namespace Emby.Server.Implementations.MediaEncoder
 
                             var protocol = MediaProtocol.File;
 
-                            var inputPath = MediaEncoderHelpers.GetInputArgument(_fileSystem, video.Path, protocol, null, new string[] { });
+                            var inputPath = MediaEncoderHelpers.GetInputArgument(_fileSystem, video.Path, protocol, null, Array.Empty<string>());
 
                             _fileSystem.CreateDirectory(_fileSystem.GetDirectoryName(path));
 

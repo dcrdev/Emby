@@ -4,6 +4,7 @@ using System.Globalization;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
 using SQLitePCL.pretty;
+using System.IO;
 
 namespace Emby.Server.Implementations.Data
 {
@@ -129,14 +130,14 @@ namespace Emby.Server.Implementations.Data
         /// </summary>
         /// <returns>System.Byte[][].</returns>
         /// <exception cref="System.ArgumentNullException">obj</exception>
-        public static byte[] SerializeToBytes(this IJsonSerializer json, object obj, IMemoryStreamFactory streamProvider)
+        public static byte[] SerializeToBytes(this IJsonSerializer json, object obj)
         {
             if (obj == null)
             {
                 throw new ArgumentNullException("obj");
             }
 
-            using (var stream = streamProvider.CreateNew())
+            using (var stream = new MemoryStream())
             {
                 json.SerializeToStream(obj, stream);
                 return stream.ToArray();

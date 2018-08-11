@@ -230,13 +230,11 @@ namespace Emby.Dlna.PlayTo
                             GeneralCommandType.ToggleMute.ToString(),
                             GeneralCommandType.SetVolume.ToString(),
                             GeneralCommandType.SetAudioStreamIndex.ToString(),
-                            GeneralCommandType.SetSubtitleStreamIndex.ToString()
+                            GeneralCommandType.SetSubtitleStreamIndex.ToString(),
+                            GeneralCommandType.PlayMediaSource.ToString()
                     },
 
-                    SupportsMediaControl = true,
-
-                    // xbox one creates a new uuid everytime it restarts
-                    SupportsPersistentIdentifier = (device.Properties.ModelName ?? string.Empty).IndexOf("xbox", StringComparison.OrdinalIgnoreCase) == -1
+                    SupportsMediaControl = true
                 });
 
                 _logger.Info("DLNA Session created for {0} - {1}", device.Properties.Name, device.Properties.ModelName);
@@ -257,7 +255,6 @@ namespace Emby.Dlna.PlayTo
             }
 
             _disposed = true;
-            GC.SuppressFinalize(this);
         }
     }
 }

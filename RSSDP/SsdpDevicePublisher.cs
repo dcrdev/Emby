@@ -18,8 +18,6 @@ namespace Rssdp.Infrastructure
     public class SsdpDevicePublisher : DisposableManagedObjectBase, ISsdpDevicePublisher
     {
 
-        #region Fields & Constants
-
         private ISsdpCommunicationsServer _CommsServer;
         private string _OSName;
         private string _OSVersion;
@@ -31,23 +29,12 @@ namespace Rssdp.Infrastructure
 
         private ITimer _RebroadcastAliveNotificationsTimer;
         private ITimerFactory _timerFactory;
-        //private TimeSpan _RebroadcastAliveNotificationsTimeSpan;
-        private DateTime _LastNotificationTime;
 
         private IDictionary<string, SearchRequest> _RecentSearchRequests;
 
         private Random _Random;
-        //private TimeSpan _MinCacheTime;
 
         private const string ServerVersion = "1.0";
-
-        #endregion
-
-        #region Message Format Constants
-
-        #endregion
-
-        #region Constructors
 
         /// <summary>
         /// Default constructor.
@@ -75,9 +62,10 @@ namespace Rssdp.Infrastructure
             _CommsServer.BeginListeningForBroadcasts();
         }
 
-        #endregion
-
-        #region Public Methods
+        public void StartBroadcastingAliveMessages(TimeSpan interval)
+        {
+            _RebroadcastAliveNotificationsTimer = _timerFactory.Create(SendAllAliveNotifications, null, TimeSpan.FromSeconds(5), interval);
+        }
 
         /// <summary>
         /// Adds a device (and it's children) to the list of devices being published by this server, making them discoverable to SSDP clients.
@@ -111,13 +99,7 @@ namespace Rssdp.Infrastructure
 
             if (wasAdded)
             {
-                //_MinCacheTime = minCacheTime;
-
-                ConnectToDeviceEvents(device);
-
                 WriteTrace("Device Added", device);
-
-                SetRebroadcastAliveNotificationsTimer(minCacheTime);
 
                 SendAliveNotifications(device, true, CancellationToken.None);
             }
@@ -150,21 +132,11 @@ namespace Rssdp.Infrastructure
 
             if (wasRemoved)
             {
-                //_MinCacheTime = minCacheTime;
-
-                DisconnectFromDeviceEvents(device);
-
                 WriteTrace("Device Removed", device);
 
                 await SendByeByeNotifications(device, true, CancellationToken.None).ConfigureAwait(false);
-
-                SetRebroadcastAliveNotificationsTimer(minCacheTime);
             }
         }
-
-        #endregion
-
-        #region Public Properties
 
         /// <summary>
         /// Returns a read only list of devices being published by this instance.
@@ -192,10 +164,6 @@ namespace Rssdp.Infrastructure
                 _SupportPnpRootDevice = value;
             }
         }
-
-        #endregion
-
-        #region Overrides
 
         /// <summary>
         /// Stops listening for requests, stops sending periodic broadcasts, disposes all internal resources.
@@ -226,12 +194,6 @@ namespace Rssdp.Infrastructure
                 _RecentSearchRequests = null;
             }
         }
-
-        #endregion
-
-        #region Private Methods
-
-        #region Search Related Methods
 
         private void ProcessSearchRequest(string mx, string searchTarget, IpEndPointInfo remoteEndPoint, IpAddressInfo receivedOnlocalIpAddress, CancellationToken cancellationToken)
         {
@@ -338,7 +300,7 @@ namespace Rssdp.Infrastructure
 
             values["EXT"] = "";
             values["DATE"] = DateTime.UtcNow.ToString("r");
-            values["CACHE-CONTROL"] = "max-age = 600";
+            values["CACHE-CONTROL"] = "max-age = " + rootDevice.CacheLifetime.TotalSeconds;
             values["ST"] = searchTarget;
             values["SERVER"] = string.Format("{0}/{1} UPnP/1.0 RSSDP/{2}", _OSName, _OSVersion, ServerVersion);
             values["USN"] = uniqueServiceName;
@@ -395,25 +357,15 @@ namespace Rssdp.Infrastructure
             }
         }
 
-        #endregion
-
-        #region Notification Related Methods
-
-        #region Alive
-
         private void SendAllAliveNotifications(object state)
         {
             try
             {
                 if (IsDisposed) return;
 
-                //DisposeRebroadcastTimer();
-
                 //WriteTrace("Begin Sending Alive Notifications For All Devices");
 
-                _LastNotificationTime = DateTime.Now;
-
-                IEnumerable<SsdpRootDevice> devices;
+                SsdpRootDevice[] devices;
                 lock (_Devices)
                 {
                     devices = _Devices.ToArray();
@@ -433,12 +385,6 @@ namespace Rssdp.Infrastructure
                 WriteTrace("Publisher stopped, exception " + ex.Message);
                 Dispose();
             }
-            //finally
-            //{
-            //    // This is causing all notifications to stop
-            //    //if (!this.IsDisposed)
-            //        //SetRebroadcastAliveNotificationsTimer(_MinCacheTime);
-            //}
         }
 
         private void SendAliveNotifications(SsdpDevice device, bool isRoot, CancellationToken cancellationToken)
@@ -484,10 +430,6 @@ namespace Rssdp.Infrastructure
             //WriteTrace(String.Format("Sent alive notification"), device);
         }
 
-        #endregion
-
-        #region ByeBye
-
         private Task SendByeByeNotifications(SsdpDevice device, bool isRoot, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
@@ -527,14 +469,9 @@ namespace Rssdp.Infrastructure
             var message = BuildMessage(header, values);
 
             var sendCount = IsDisposed ? 1 : 3;
+            WriteTrace(String.Format("Sent byebye notification"), device);
             return _CommsServer.SendMulticastMessage(message, sendCount, cancellationToken);
-
-            //WriteTrace(String.Format("Sent byebye notification"), device);
         }
-
-        #endregion
-
-        #region Rebroadcast Timer
 
         private void DisposeRebroadcastTimer()
         {
@@ -542,45 +479,6 @@ namespace Rssdp.Infrastructure
             _RebroadcastAliveNotificationsTimer = null;
             if (timer != null)
                 timer.Dispose();
-        }
-
-        private void SetRebroadcastAliveNotificationsTimer(TimeSpan minCacheTime)
-        {
-            //if (minCacheTime == _RebroadcastAliveNotificationsTimeSpan) return;
-
-            DisposeRebroadcastTimer();
-
-            if (IsDisposed)
-            {
-                return;
-            }
-
-            if (minCacheTime == TimeSpan.Zero) return;
-
-            // According to UPnP/SSDP spec, we should randomise the interval at 
-            // which we broadcast notifications, to help with network congestion.
-            // Specs also advise to choose a random interval up to *half* the cache time.
-            // Here we do that, but using the minimum non-zero cache time of any device we are publishing.
-            var rebroadCastInterval = new TimeSpan(minCacheTime.Ticks);
-
-            // If we were already setup to rebroadcast someime in the future,
-            // don't just blindly reset the next broadcast time to the new interval
-            // as repeatedly changing the interval might end up causing us to over
-            // delay in sending the next one.
-            var nextBroadcastInterval = rebroadCastInterval;
-            if (_LastNotificationTime != DateTime.MinValue)
-            {
-                nextBroadcastInterval = rebroadCastInterval.Subtract(DateTime.Now.Subtract(_LastNotificationTime));
-                if (nextBroadcastInterval.Ticks < 0)
-                    nextBroadcastInterval = TimeSpan.Zero;
-                else if (nextBroadcastInterval > rebroadCastInterval)
-                    nextBroadcastInterval = rebroadCastInterval;
-            }
-
-            //_RebroadcastAliveNotificationsTimeSpan = rebroadCastInterval;
-            _RebroadcastAliveNotificationsTimer = _timerFactory.Create(SendAllAliveNotifications, null, nextBroadcastInterval, rebroadCastInterval);
-
-            WriteTrace(String.Format("Rebroadcast Interval = {0}, Next Broadcast At = {1}", rebroadCastInterval.ToString(), nextBroadcastInterval.ToString()));
         }
 
         private TimeSpan GetMinimumNonZeroCacheLifetime()
@@ -595,10 +493,6 @@ namespace Rssdp.Infrastructure
             else
                 return TimeSpan.Zero;
         }
-
-        #endregion
-
-        #endregion
 
         private string GetFirstHeaderValue(System.Net.Http.Headers.HttpRequestHeaders httpRequestHeaders, string headerName)
         {
@@ -630,50 +524,6 @@ namespace Rssdp.Infrastructure
                 WriteTrace(text + " " + device.DeviceType + " - " + device.Uuid);
         }
 
-        private void ConnectToDeviceEvents(SsdpDevice device)
-        {
-            device.DeviceAdded += device_DeviceAdded;
-            device.DeviceRemoved += device_DeviceRemoved;
-
-            foreach (var childDevice in device.Devices)
-            {
-                ConnectToDeviceEvents(childDevice);
-            }
-        }
-
-        private void DisconnectFromDeviceEvents(SsdpDevice device)
-        {
-            device.DeviceAdded -= device_DeviceAdded;
-            device.DeviceRemoved -= device_DeviceRemoved;
-
-            foreach (var childDevice in device.Devices)
-            {
-                DisconnectFromDeviceEvents(childDevice);
-            }
-        }
-
-        #endregion
-
-        #region Event Handlers
-
-        private void device_DeviceAdded(object sender, DeviceEventArgs e)
-        {
-            if (IsDisposed)
-            {
-                return;
-            }
-
-            SendAliveNotifications(e.Device, false, CancellationToken.None);
-            ConnectToDeviceEvents(e.Device);
-        }
-
-        private void device_DeviceRemoved(object sender, DeviceEventArgs e)
-        {
-            var task = SendByeByeNotifications(e.Device, false, CancellationToken.None);
-            Task.WaitAll(task);
-            DisconnectFromDeviceEvents(e.Device);
-        }
-
         private void CommsServer_RequestReceived(object sender, RequestReceivedEventArgs e)
         {
             if (this.IsDisposed) return;
@@ -691,10 +541,6 @@ namespace Rssdp.Infrastructure
             }
         }
 
-        #endregion
-
-        #region Private Classes
-
         private class SearchRequest
         {
             public IpEndPointInfo EndPoint { get; set; }
@@ -711,8 +557,5 @@ namespace Rssdp.Infrastructure
                 return DateTime.UtcNow.Subtract(this.Received).TotalMilliseconds > 500;
             }
         }
-
-        #endregion
-
     }
 }

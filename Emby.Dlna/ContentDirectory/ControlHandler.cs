@@ -38,7 +38,6 @@ namespace Emby.Dlna.ContentDirectory
     public class ControlHandler : BaseControlHandler
     {
         private readonly ILibraryManager _libraryManager;
-        private readonly IChannelManager _channelManager;
         private readonly IUserDataManager _userDataManager;
         private readonly IServerConfigurationManager _config;
         private readonly User _user;
@@ -57,14 +56,13 @@ namespace Emby.Dlna.ContentDirectory
 
         private readonly DeviceProfile _profile;
 
-        public ControlHandler(ILogger logger, ILibraryManager libraryManager, DeviceProfile profile, string serverAddress, string accessToken, IImageProcessor imageProcessor, IUserDataManager userDataManager, User user, int systemUpdateId, IServerConfigurationManager config, ILocalizationManager localization, IChannelManager channelManager, IMediaSourceManager mediaSourceManager, IUserViewManager userViewManager, IMediaEncoder mediaEncoder, IXmlReaderSettingsFactory xmlReaderSettingsFactory, ITVSeriesManager tvSeriesManager)
+        public ControlHandler(ILogger logger, ILibraryManager libraryManager, DeviceProfile profile, string serverAddress, string accessToken, IImageProcessor imageProcessor, IUserDataManager userDataManager, User user, int systemUpdateId, IServerConfigurationManager config, ILocalizationManager localization, IMediaSourceManager mediaSourceManager, IUserViewManager userViewManager, IMediaEncoder mediaEncoder, IXmlReaderSettingsFactory xmlReaderSettingsFactory, ITVSeriesManager tvSeriesManager)
             : base(config, logger, xmlReaderSettingsFactory)
         {
             _libraryManager = libraryManager;
             _userDataManager = userDataManager;
             _user = user;
             _systemUpdateId = systemUpdateId;
-            _channelManager = channelManager;
             _userViewManager = userViewManager;
             _tvSeriesManager = tvSeriesManager;
             _profile = profile;
@@ -126,7 +124,7 @@ namespace Emby.Dlna.ContentDirectory
 
             userdata.PlaybackPositionTicks = TimeSpan.FromSeconds(newbookmark).Ticks;
 
-            _userDataManager.SaveUserData(user.Id, item, userdata, UserDataSaveReason.TogglePlayed,
+            _userDataManager.SaveUserData(user, item, userdata, UserDataSaveReason.TogglePlayed,
                 CancellationToken.None);
 
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -247,6 +245,8 @@ namespace Emby.Dlna.ContentDirectory
 
             int totalCount;
 
+            var dlnaOptions = _config.GetDlnaConfiguration();
+
             using (XmlWriter writer = XmlWriter.Create(builder, settings))
             {
                 //writer.WriteStartDocument();
@@ -275,7 +275,7 @@ namespace Emby.Dlna.ContentDirectory
                     }
                     else
                     {
-                        _didlBuilder.WriteItemElement(_config.GetDlnaConfiguration(), writer, item, user, null, null, deviceId, filter);
+                        _didlBuilder.WriteItemElement(dlnaOptions, writer, item, user, null, null, deviceId, filter);
                     }
 
                     provided++;
@@ -301,7 +301,7 @@ namespace Emby.Dlna.ContentDirectory
                         }
                         else
                         {
-                            _didlBuilder.WriteItemElement(_config.GetDlnaConfiguration(), writer, childItem, user, item, serverItem.StubType, deviceId, filter);
+                            _didlBuilder.WriteItemElement(dlnaOptions, writer, childItem, user, item, serverItem.StubType, deviceId, filter);
                         }
                     }
                 }
@@ -311,7 +311,7 @@ namespace Emby.Dlna.ContentDirectory
 
             var resXML = builder.ToString();
 
-            return new List<KeyValuePair<string, string>>
+            return new []
                 {
                     new KeyValuePair<string,string>("Result", resXML),
                     new KeyValuePair<string,string>("NumberReturned", provided.ToString(_usCulture)),
@@ -386,6 +386,8 @@ namespace Emby.Dlna.ContentDirectory
 
                 provided = childrenResult.Items.Length;
 
+                var dlnaOptions = _config.GetDlnaConfiguration();
+
                 foreach (var i in childrenResult.Items)
                 {
                     if (i.IsDisplayedAsFolder)
@@ -397,7 +399,7 @@ namespace Emby.Dlna.ContentDirectory
                     }
                     else
                     {
-                        _didlBuilder.WriteItemElement(_config.GetDlnaConfiguration(), writer, i, user, item, serverItem.StubType, deviceId, filter);
+                        _didlBuilder.WriteItemElement(dlnaOptions, writer, i, user, item, serverItem.StubType, deviceId, filter);
                     }
                 }
 
@@ -459,7 +461,7 @@ namespace Emby.Dlna.ContentDirectory
             {
                 Limit = limit,
                 StartIndex = startIndex,
-                OrderBy = sortOrders.Select(i => new Tuple<string, SortOrder>(i, sort.SortOrder)).ToArray(),
+                OrderBy = sortOrders.Select(i => new ValueTuple<string, SortOrder>(i, sort.SortOrder)).ToArray(),
                 User = user,
                 Recursive = true,
                 IsMissing = false,
@@ -479,17 +481,17 @@ namespace Emby.Dlna.ContentDirectory
         {
             if (item is MusicGenre)
             {
-                return GetMusicGenreItems(item, null, user, sort, startIndex, limit);
+                return GetMusicGenreItems(item, Guid.Empty, user, sort, startIndex, limit);
             }
 
             if (item is MusicArtist)
             {
-                return GetMusicArtistItems(item, null, user, sort, startIndex, limit);
+                return GetMusicArtistItems(item, Guid.Empty, user, sort, startIndex, limit);
             }
 
             if (item is Genre)
             {
-                return GetGenreItems(item, null, user, sort, startIndex, limit);
+                return GetGenreItems(item, Guid.Empty, user, sort, startIndex, limit);
             }
 
             if (!stubType.HasValue || stubType.Value != StubType.Folder)
@@ -520,12 +522,6 @@ namespace Emby.Dlna.ContentDirectory
 
             if (stubType.HasValue)
             {
-                var person = item as Person;
-                if (person != null)
-                {
-                    return GetItemsFromPerson(person, user, startIndex, limit);
-                }
-
                 if (stubType.Value != StubType.Folder)
                 {
                     return ApplyPaging(new QueryResult<ServerItem>(), startIndex, limit);
@@ -534,13 +530,11 @@ namespace Emby.Dlna.ContentDirectory
 
             var folder = (Folder)item;
 
-            var query = new InternalItemsQuery
+            var query = new InternalItemsQuery(user)
             {
                 Limit = limit,
                 StartIndex = startIndex,
-                User = user,
                 IsVirtualItem = false,
-                PresetViews = new string[] { },
                 ExcludeItemTypes = new[] { typeof(Game).Name, typeof(Book).Name },
                 IsPlaceHolder = false,
                 DtoOptions = GetDtoOptions()
@@ -767,7 +761,7 @@ namespace Emby.Dlna.ContentDirectory
 
         private QueryResult<ServerItem> GetFolders(BaseItem item, User user, StubType? stubType, SortCriteria sort, int? startIndex, int? limit)
         {
-            var folders = user.RootFolder.GetChildren(user, true)
+            var folders = _libraryManager.GetUserRootFolder().GetChildren(user, true)
                 .OrderBy(i => i.SortName)
                 .Select(i => new ServerItem(i)
                 {
@@ -876,10 +870,10 @@ namespace Emby.Dlna.ContentDirectory
             query.Parent = parent;
             query.SetUser(user);
 
-            query.OrderBy = new Tuple<string, SortOrder>[]
+            query.OrderBy = new ValueTuple<string, SortOrder>[]
             {
-                new Tuple<string, SortOrder> (ItemSortBy.DatePlayed, SortOrder.Descending),
-                new Tuple<string, SortOrder> (ItemSortBy.SortName, SortOrder.Ascending)
+                new ValueTuple<string, SortOrder> (ItemSortBy.DatePlayed, SortOrder.Descending),
+                new ValueTuple<string, SortOrder> (ItemSortBy.SortName, SortOrder.Ascending)
             };
 
             query.IsResumable = true;
@@ -1024,7 +1018,7 @@ namespace Emby.Dlna.ContentDirectory
         {
             var genresResult = _libraryManager.GetGenres(new InternalItemsQuery(user)
             {
-                AncestorIds = new[] { parent.Id.ToString("N") },
+                AncestorIds = new[] { parent.Id },
                 StartIndex = query.StartIndex,
                 Limit = query.Limit
             });
@@ -1042,7 +1036,7 @@ namespace Emby.Dlna.ContentDirectory
         {
             var genresResult = _libraryManager.GetMusicGenres(new InternalItemsQuery(user)
             {
-                AncestorIds = new[] { parent.Id.ToString("N") },
+                AncestorIds = new[] { parent.Id },
                 StartIndex = query.StartIndex,
                 Limit = query.Limit
             });
@@ -1060,7 +1054,7 @@ namespace Emby.Dlna.ContentDirectory
         {
             var artists = _libraryManager.GetAlbumArtists(new InternalItemsQuery(user)
             {
-                AncestorIds = new[] { parent.Id.ToString("N") },
+                AncestorIds = new[] { parent.Id },
                 StartIndex = query.StartIndex,
                 Limit = query.Limit
             });
@@ -1078,7 +1072,7 @@ namespace Emby.Dlna.ContentDirectory
         {
             var artists = _libraryManager.GetArtists(new InternalItemsQuery(user)
             {
-                AncestorIds = new[] { parent.Id.ToString("N") },
+                AncestorIds = new[] { parent.Id },
                 StartIndex = query.StartIndex,
                 Limit = query.Limit
             });
@@ -1096,7 +1090,7 @@ namespace Emby.Dlna.ContentDirectory
         {
             var artists = _libraryManager.GetArtists(new InternalItemsQuery(user)
             {
-                AncestorIds = new[] { parent.Id.ToString("N") },
+                AncestorIds = new[] { parent.Id },
                 StartIndex = query.StartIndex,
                 Limit = query.Limit,
                 IsFavorite = true
@@ -1125,77 +1119,77 @@ namespace Emby.Dlna.ContentDirectory
 
         private QueryResult<ServerItem> GetMusicLatest(BaseItem parent, User user, InternalItemsQuery query)
         {
-            query.OrderBy = new Tuple<string, SortOrder>[] { };
+            query.OrderBy = new ValueTuple<string, SortOrder>[] { };
 
             var items = _userViewManager.GetLatestItems(new LatestItemsQuery
             {
-                UserId = user.Id.ToString("N"),
+                UserId = user.Id,
                 Limit = 50,
                 IncludeItemTypes = new[] { typeof(Audio).Name },
-                ParentId = parent == null ? null : parent.Id.ToString("N"),
+                ParentId = parent == null ? Guid.Empty : parent.Id,
                 GroupItems = true
 
-            }, query.DtoOptions).Select(i => i.Item1 ?? i.Item2.FirstOrDefault()).Where(i => i != null).ToList();
+            }, query.DtoOptions).Select(i => i.Item1 ?? i.Item2.FirstOrDefault()).Where(i => i != null).ToArray();
 
             return ToResult(items);
         }
 
         private QueryResult<ServerItem> GetNextUp(BaseItem parent, User user, InternalItemsQuery query)
         {
-            query.OrderBy = new Tuple<string, SortOrder>[] { };
+            query.OrderBy = new ValueTuple<string, SortOrder>[] { };
 
             var result = _tvSeriesManager.GetNextUp(new NextUpQuery
             {
                 Limit = query.Limit,
                 StartIndex = query.StartIndex,
-                UserId = query.User.Id.ToString("N")
+                UserId = query.User.Id
 
-            }, new List<BaseItem> { parent }, query.DtoOptions);
+            }, new [] { parent }, query.DtoOptions);
 
             return ToResult(result);
         }
 
         private QueryResult<ServerItem> GetTvLatest(BaseItem parent, User user, InternalItemsQuery query)
         {
-            query.OrderBy = new Tuple<string, SortOrder>[] { };
+            query.OrderBy = new ValueTuple<string, SortOrder>[] { };
 
             var items = _userViewManager.GetLatestItems(new LatestItemsQuery
             {
-                UserId = user.Id.ToString("N"),
+                UserId = user.Id,
                 Limit = 50,
                 IncludeItemTypes = new[] { typeof(Episode).Name },
-                ParentId = parent == null ? null : parent.Id.ToString("N"),
+                ParentId = parent == null ? Guid.Empty : parent.Id,
                 GroupItems = false
 
-            }, query.DtoOptions).Select(i => i.Item1 ?? i.Item2.FirstOrDefault()).Where(i => i != null).ToList();
+            }, query.DtoOptions).Select(i => i.Item1 ?? i.Item2.FirstOrDefault()).Where(i => i != null).ToArray();
 
             return ToResult(items);
         }
 
         private QueryResult<ServerItem> GetMovieLatest(BaseItem parent, User user, InternalItemsQuery query)
         {
-            query.OrderBy = new Tuple<string, SortOrder>[] { };
+            query.OrderBy = new ValueTuple<string, SortOrder>[] { };
 
             var items = _userViewManager.GetLatestItems(new LatestItemsQuery
             {
-                UserId = user.Id.ToString("N"),
+                UserId = user.Id,
                 Limit = 50,
                 IncludeItemTypes = new[] { typeof(Movie).Name },
-                ParentId = parent == null ? null : parent.Id.ToString("N"),
+                ParentId = parent == null ? Guid.Empty : parent.Id,
                 GroupItems = true
 
-            }, query.DtoOptions).Select(i => i.Item1 ?? i.Item2.FirstOrDefault()).Where(i => i != null).ToList();
+            }, query.DtoOptions).Select(i => i.Item1 ?? i.Item2.FirstOrDefault()).Where(i => i != null).ToArray();
 
             return ToResult(items);
         }
 
-        private QueryResult<ServerItem> GetMusicArtistItems(BaseItem item, Guid? parentId, User user, SortCriteria sort, int? startIndex, int? limit)
+        private QueryResult<ServerItem> GetMusicArtistItems(BaseItem item, Guid parentId, User user, SortCriteria sort, int? startIndex, int? limit)
         {
             var query = new InternalItemsQuery(user)
             {
                 Recursive = true,
                 ParentId = parentId,
-                ArtistIds = new[] { item.Id.ToString("N") },
+                ArtistIds = new[] { item.Id },
                 IncludeItemTypes = new[] { typeof(MusicAlbum).Name },
                 Limit = limit,
                 StartIndex = startIndex,
@@ -1209,13 +1203,13 @@ namespace Emby.Dlna.ContentDirectory
             return ToResult(result);
         }
 
-        private QueryResult<ServerItem> GetGenreItems(BaseItem item, Guid? parentId, User user, SortCriteria sort, int? startIndex, int? limit)
+        private QueryResult<ServerItem> GetGenreItems(BaseItem item, Guid parentId, User user, SortCriteria sort, int? startIndex, int? limit)
         {
             var query = new InternalItemsQuery(user)
             {
                 Recursive = true,
                 ParentId = parentId,
-                GenreIds = new[] { item.Id.ToString("N") },
+                GenreIds = new[] { item.Id },
                 IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Series).Name },
                 Limit = limit,
                 StartIndex = startIndex,
@@ -1229,13 +1223,13 @@ namespace Emby.Dlna.ContentDirectory
             return ToResult(result);
         }
 
-        private QueryResult<ServerItem> GetMusicGenreItems(BaseItem item, Guid? parentId, User user, SortCriteria sort, int? startIndex, int? limit)
+        private QueryResult<ServerItem> GetMusicGenreItems(BaseItem item, Guid parentId, User user, SortCriteria sort, int? startIndex, int? limit)
         {
             var query = new InternalItemsQuery(user)
             {
                 Recursive = true,
                 ParentId = parentId,
-                GenreIds = new[] { item.Id.ToString("N") },
+                GenreIds = new[] { item.Id },
                 IncludeItemTypes = new[] { typeof(MusicAlbum).Name },
                 Limit = limit,
                 StartIndex = startIndex,
@@ -1249,15 +1243,15 @@ namespace Emby.Dlna.ContentDirectory
             return ToResult(result);
         }
 
-        private QueryResult<ServerItem> ToResult(List<BaseItem> result)
+        private QueryResult<ServerItem> ToResult(BaseItem[] result)
         {
             var serverItems = result
                 .Select(i => new ServerItem(i))
-                .ToArray(result.Count);
+                .ToArray(result.Length);
 
             return new QueryResult<ServerItem>
             {
-                TotalRecordCount = result.Count,
+                TotalRecordCount = result.Length,
                 Items = serverItems
             };
         }
@@ -1267,7 +1261,7 @@ namespace Emby.Dlna.ContentDirectory
             var serverItems = result
                 .Items
                 .Select(i => new ServerItem(i))
-                .ToArray(result.Items.Length);
+                .ToArray();
 
             return new QueryResult<ServerItem>
             {
@@ -1284,28 +1278,7 @@ namespace Emby.Dlna.ContentDirectory
                 sortOrders.Add(ItemSortBy.SortName);
             }
 
-            query.OrderBy = sortOrders.Select(i => new Tuple<string, SortOrder>(i, sort.SortOrder)).ToArray();
-        }
-
-        private QueryResult<ServerItem> GetItemsFromPerson(Person person, User user, int? startIndex, int? limit)
-        {
-            var itemsResult = _libraryManager.GetItemsResult(new InternalItemsQuery(user)
-            {
-                PersonIds = new[] { person.Id.ToString("N") },
-                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Series).Name, typeof(Trailer).Name },
-                OrderBy = new[] { ItemSortBy.SortName }.Select(i => new Tuple<string, SortOrder>(i, SortOrder.Ascending)).ToArray(),
-                Limit = limit,
-                StartIndex = startIndex,
-                DtoOptions = GetDtoOptions()
-            });
-
-            var serverItems = itemsResult.Items.Select(i => new ServerItem(i)).ToArray(itemsResult.Items.Length);
-
-            return new QueryResult<ServerItem>
-            {
-                TotalRecordCount = itemsResult.TotalRecordCount,
-                Items = serverItems
-            };
+            query.OrderBy = sortOrders.Select(i => new ValueTuple<string, SortOrder>(i, sort.SortOrder)).ToArray();
         }
 
         private QueryResult<ServerItem> ApplyPaging(QueryResult<ServerItem> result, int? startIndex, int? limit)
@@ -1319,7 +1292,7 @@ namespace Emby.Dlna.ContentDirectory
         {
             return DidlBuilder.IsIdRoot(id)
 
-                 ? new ServerItem(user.RootFolder)
+                 ? new ServerItem(_libraryManager.GetUserRootFolder())
                  : ParseItemId(id, user);
         }
 
@@ -1363,7 +1336,7 @@ namespace Emby.Dlna.ContentDirectory
 
             Logger.Error("Error parsing item Id: {0}. Returning user root folder.", id);
 
-            return new ServerItem(user.RootFolder);
+            return new ServerItem(_libraryManager.GetUserRootFolder());
         }
     }
 

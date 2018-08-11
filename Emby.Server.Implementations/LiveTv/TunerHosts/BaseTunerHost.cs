@@ -16,6 +16,7 @@ using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Controller.Library;
 
 namespace Emby.Server.Implementations.LiveTv.TunerHosts
 {
@@ -57,10 +58,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
 
             if (enableCache && !string.IsNullOrEmpty(key) && _channelCache.TryGetValue(key, out cache))
             {
-                if (DateTime.UtcNow - cache.Date < TimeSpan.FromMinutes(60))
-                {
-                    return cache.Channels.ToList();
-                }
+                return cache.Channels.ToList();
             }
 
             var result = await GetChannelsInternal(tuner, cancellationToken).ConfigureAwait(false);
@@ -70,7 +68,6 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
             if (!string.IsNullOrEmpty(key) && list.Count > 0)
             {
                 cache = cache ?? new ChannelCache();
-                cache.Date = DateTime.UtcNow;
                 cache.Channels = list;
                 _channelCache.AddOrUpdate(key, cache, (k, v) => cache);
             }
@@ -172,9 +169,9 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
             return new List<MediaSourceInfo>();
         }
 
-        protected abstract Task<ILiveStream> GetChannelStream(TunerHostInfo tuner, ChannelInfo channel, string streamId, CancellationToken cancellationToken);
+        protected abstract Task<ILiveStream> GetChannelStream(TunerHostInfo tuner, ChannelInfo channel, string streamId, List<ILiveStream> currentLiveStreams, CancellationToken cancellationToken);
 
-        public async Task<ILiveStream> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
+        public async Task<ILiveStream> GetChannelStream(string channelId, string streamId, List<ILiveStream> currentLiveStreams, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(channelId))
             {
@@ -215,7 +212,7 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
 
                 try
                 {
-                    var liveStream = await GetChannelStream(host, channelInfo, streamId, cancellationToken).ConfigureAwait(false);
+                    var liveStream = await GetChannelStream(host, channelInfo, streamId, currentLiveStreams, cancellationToken).ConfigureAwait(false);
                     var startTime = DateTime.UtcNow;
                     await liveStream.Open(cancellationToken).ConfigureAwait(false);
                     var endTime = DateTime.UtcNow;
@@ -255,7 +252,6 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
 
         private class ChannelCache
         {
-            public DateTime Date;
             public List<ChannelInfo> Channels;
         }
     }

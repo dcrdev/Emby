@@ -39,7 +39,6 @@ namespace MediaBrowser.Providers.Manager
         private readonly ILibraryMonitor _libraryMonitor;
         private readonly IFileSystem _fileSystem;
         private readonly ILogger _logger;
-        private readonly IMemoryStreamFactory _memoryStreamProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageSaver" /> class.
@@ -48,13 +47,12 @@ namespace MediaBrowser.Providers.Manager
         /// <param name="libraryMonitor">The directory watchers.</param>
         /// <param name="fileSystem">The file system.</param>
         /// <param name="logger">The logger.</param>
-        public ImageSaver(IServerConfigurationManager config, ILibraryMonitor libraryMonitor, IFileSystem fileSystem, ILogger logger, IMemoryStreamFactory memoryStreamProvider)
+        public ImageSaver(IServerConfigurationManager config, ILibraryMonitor libraryMonitor, IFileSystem fileSystem, ILogger logger)
         {
             _config = config;
             _libraryMonitor = libraryMonitor;
             _fileSystem = fileSystem;
             _logger = logger;
-            _memoryStreamProvider = memoryStreamProvider;
         }
 
         /// <summary>
@@ -80,7 +78,7 @@ namespace MediaBrowser.Providers.Manager
                 throw new ArgumentNullException("mimeType");
             }
 
-            var saveLocally = item.SupportsLocalMetadata && item.IsSaveLocalMetadataEnabled() && !item.IsOwnedItem && !(item is Audio);
+            var saveLocally = item.SupportsLocalMetadata && item.IsSaveLocalMetadataEnabled() && !item.ExtraType.HasValue && !(item is Audio);
 
             if (item is User)
             {
@@ -126,7 +124,7 @@ namespace MediaBrowser.Providers.Manager
             var retryPaths = GetSavePaths(item, type, imageIndex, mimeType, false);
 
             // If there are more than one output paths, the stream will need to be seekable
-            var memoryStream = _memoryStreamProvider.CreateNew();
+            var memoryStream = new MemoryStream();
             using (source)
             {
                 await source.CopyToAsync(memoryStream).ConfigureAwait(false);
@@ -235,7 +233,7 @@ namespace MediaBrowser.Providers.Manager
         /// <returns>Task.</returns>
         private async Task SaveImageToLocation(Stream source, string path, CancellationToken cancellationToken)
         {
-            _logger.Info("Saving image to {0}", path);
+            _logger.Debug("Saving image to {0}", path);
 
             var parentFolder = _fileSystem.GetDirectoryName(path);
 
@@ -415,7 +413,7 @@ namespace MediaBrowser.Providers.Manager
                     filename = item is MusicAlbum ? "cdart" : "disc";
                     break;
                 case ImageType.Primary:
-                    filename = item is Episode ? _fileSystem.GetFileNameWithoutExtension(item.Path) : folderName;
+                    filename = saveLocally && item is Episode ? _fileSystem.GetFileNameWithoutExtension(item.Path) : folderName;
                     break;
                 case ImageType.Backdrop:
                     filename = GetBackdropSaveFilename(item.GetImages(type), "backdrop", "backdrop", imageIndex);
