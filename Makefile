@@ -19,4 +19,4 @@ build:
 	dotnet build --configuration $(CONFIG) --runtime $(RUNTIME) \
 	./MediaBrowser.sln
 run:
-	dotnet ./Emby.Server.Unix/bin/Release/netcoreapp2.0/linux-x64/Emby.Server.Unix.dll
+	dotnet ./Emby.Server.Unix/bin/Release/netcoreapp2.1/linux-x64/Emby.Server.Unix.dll

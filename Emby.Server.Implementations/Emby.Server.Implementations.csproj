@@ -8,16 +8,17 @@
     <ProjectReference Include="..\Mono.Nat\Mono.Nat.csproj"/>
     <ProjectReference Include="..\MediaBrowser.Api\MediaBrowser.Api.csproj"/>
     <ProjectReference Include="..\MediaBrowser.LocalMetadata\MediaBrowser.LocalMetadata.csproj"/>
+    <ProjectReference Include="..\Emby.Notifications\Emby.Notifications.csproj"/>
     <ProjectReference Include="..\Emby.Photos\Emby.Photos.csproj"/>
     <ProjectReference Include="..\Emby.Drawing\Emby.Drawing.csproj"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MediaBrowser.Common" Version="3.5.0"/>
     <PackageReference Include="MediaBrowser.Server.Core" Version="3.5.0"/>
-    <PackageReference Include="Emby.XmlTv" Version="1.0.14"/>
-    <PackageReference Include="ServiceStack.Text.Core" Version="1.0.44"/>
-    <PackageReference Include="sharpcompress" Version="0.18.2"/>
-    <PackageReference Include="SimpleInjector" Version="4.0.12"/>
+    <PackageReference Include="Emby.XmlTv" Version="1.0.15"/>
+    <PackageReference Include="ServiceStack.Text.Core" Version="5.1.0"/>
+    <PackageReference Include="sharpcompress" Version="0.21.1"/>
+    <PackageReference Include="SimpleInjector" Version="4.3.0"/>
     <PackageReference Include="SQLitePCL.pretty.core" Version="1.1.8"/>
     <PackageReference Include="SQLitePCLRaw.core" Version="1.1.8"/>
     <PackageReference Include="MediaBrowser.Naming" Version="1.1.7-beta"/>
@@ -172,7 +173,7 @@
     <EmbeddedResource Include="values.txt"/>
   </ItemGroup>
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 </Project>
